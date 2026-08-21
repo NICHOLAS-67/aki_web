@@ -19,6 +19,20 @@ if "TABPFN_TOKEN" in st.secrets:
 else:
     st.error("❌ TABPFN_TOKEN missing from Streamlit App Secrets Manager Configuration Window.")
 
+class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
+    def __init__(self, base_model, threshold=0.5):
+        self.base_model = base_model
+        self.threshold = threshold
+        self.classes_ = np.array([0, 1])
+    def fit(self, X, y):
+        self.base_model.fit(X, y)
+        return self
+    def predict_proba(self, X):
+        return self.base_model.predict_proba(X)
+    def predict(self, X):
+        probas = self.predict_proba(X)[:, 1]
+        return (probas >= self.threshold).astype(int)
+
 st.set_page_config(page_title="EHR AKI Risk Evaluator", layout="wide")
 st.title("🫘Predict AKI Web Application")
 st.write("Clinical decision support pipeline leveraging an optimized TabPFN classification engine.")
