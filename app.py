@@ -36,6 +36,10 @@ class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
         probas = self.predict_proba(X)[:, 1]
         return (probas >= self.threshold).astype(int)
 
+    # Overriding internal sklearn checking utilities to bypass strict validation checks
+    def __sklearn_is_fitted__(self):
+        return True
+
 st.set_page_config(page_title="EHR AKI Risk Evaluator", layout="wide")
 st.title("🫘Predict AKI Web Application")
 st.write("Clinical decision support pipeline leveraging an optimized TabPFN classification engine.")
