@@ -5,18 +5,19 @@ import joblib
 import os
 import tabpfn_client  # Ensure this package is explicitly imported
 
-# Read directly from Streamlit Secrets and pass it as an environment variable
+# Bypass terminal configurations entirely by explicitly injecting the token
 if "TABPFN_TOKEN" in st.secrets:
     try:
-        # Enforce environment variable routing
-        os.environ["TABPFN_TOKEN"] = st.secrets["TABPFN_TOKEN"]
+        # Use the built-in direct setter method to completely skip 
+        # file-system configuration folder creation hooks.
+        tabpfn_client.set_access_token(st.secrets["TABPFN_TOKEN"])
         
-        # Call init without passing any parameters; it will read os.environ["TABPFN_TOKEN"]
-        tabpfn_client.init()
+        # Enforce an explicit connection state in global memory
+        os.environ["TABPFN_TOKEN"] = st.secrets["TABPFN_TOKEN"]
     except Exception as auth_err:
-        st.error(f"Authentication setup warning: {auth_err}")
+        st.error(f"Authentication token registration failure: {auth_err}")
 else:
-    st.error("❌ TABPFN_TOKEN not found in Streamlit Secrets Manager.")
+    st.error("❌ TABPFN_TOKEN missing from Streamlit App Secrets Manager Configuration Window.")
 
 st.set_page_config(page_title="EHR AKI Risk Evaluator", layout="wide")
 st.title("🫘Predict AKI Web Application")
