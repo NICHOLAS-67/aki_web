@@ -1,26 +1,25 @@
 import streamlit as st
-from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
 import pandas as pd
 import joblib
 import os
-import tabpfn_client  # Ensure this package is explicitly imported
+from pathlib import Path
 
+# TabPFN client enforces a cache directory hook. We programmatically force 
+# it to use Streamlit's temporary, write-allowed directory wrapper ('/tmp')
+# to avoid the restricted site-packages directory entirely.
+os.environ["TABPFN_TOKEN"] = st.secrets.get("TABPFN_TOKEN", "")
 
-# Bypass terminal configurations entirely by explicitly injecting the token
-if "TABPFN_TOKEN" in st.secrets:
-    try:
-        # Use the built-in direct setter method to completely skip 
-        # file-system configuration folder creation hooks.
-        tabpfn_client.set_access_token(st.secrets["TABPFN_TOKEN"])
-        
-        # Enforce an explicit connection state in global memory
-        os.environ["TABPFN_TOKEN"] = st.secrets["TABPFN_TOKEN"]
-    except Exception as auth_err:
-        st.error(f"Authentication token registration failure: {auth_err}")
-else:
-    st.error("❌ TABPFN_TOKEN missing from Streamlit App Secrets Manager Configuration Window.")
-
+try:
+    import tabpfn_client
+    # Point the client's internal caching path strictly to the open server scratch space
+    tabpfn_client.service_wrapper.UserAuthenticationClient.CACHED_TOKEN_FILE = Path("/tmp/.tabpfn/token")
+    
+    # Register the token in memory
+    if os.environ["TABPFN_TOKEN"]:
+        tabpfn_client.set_access_token(os.environ["TABPFN_TOKEN"])
+except Exception as patch_err:
+    st.error(f"System patch exception routing: {patch_err}")
 
 class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
     def __init__(self, base_model, threshold=0.5):
