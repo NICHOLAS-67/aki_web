@@ -94,7 +94,7 @@ with st.sidebar.form("individual_patient_form"):
     st.markdown("**Demographics & Vitals**")
     age = st.number_input("Age (Years)", min_value=1, max_value=120, value=65)
     ethnicity = st.number_input("Patient Ethnicity Code", min_value=0, max_value=20, value=1)
-    gender = st.selectbox("Patient Gender", options=[0, 1], format_func=lambda x: "Male (1)" if x == 1 else "Female (0)")
+    gender = st.selectbox("Patient Gender", options=[1, 2], format_func=lambda x: "Male (1)" if x == 1 else "Female (2)")
     weight = st.number_input("Weight (kg)", min_value=10.0, max_value=300.0, value=75.0)
     height = st.number_input("Height (m)", min_value=0.5, max_value=2.5, value=1.75)
     bmi = st.number_input("BMI Index", min_value=10.0, max_value=60.0, value=24.5)
