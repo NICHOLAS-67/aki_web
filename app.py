@@ -22,7 +22,7 @@ try:
 except Exception as patch_err:
     st.error(f"System patch exception routing: {patch_err}")
 
-'''class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
+class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
     def __init__(self, base_model, threshold=0.5):
         self.base_model = base_model
         self.threshold = threshold
@@ -38,7 +38,7 @@ except Exception as patch_err:
 
     # Overriding internal sklearn checking utilities to bypass strict validation checks
     def __sklearn_is_fitted__(self):
-        return True'''
+        return True
 
 st.set_page_config(page_title="EHR AKI Risk Evaluator", layout="wide")
 st.title("🫘Predict AKI Web Application")
@@ -47,12 +47,14 @@ st.write("This tool is designed for general diagnostics. It is up to the clinici
 
 
 @st.cache_resource
-def load_base_model():
+def load_model():
     return joblib.load("optimized_tabpfn_model.pkl")
 
-# Re-wrap it dynamically into your class container at runtime!
-base_model_loaded = load_base_model()
-model = ThresholdOptimizedTabPFN(base_model=base_model_loaded, threshold=0.45) 
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Failed to load model file. Error: {e}")
+    st.stop()
 
 # ---------------------------------------------------------------------
 # VIEW PATH A: BULK DATA UPLOAD & BATCH PROCESSING (Main Page Area)
