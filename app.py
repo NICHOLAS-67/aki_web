@@ -2,23 +2,22 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
-from sklearn.base import BaseEstimator, ClassifierMixin
+import os
+import tabpfn_client  # Ensure this package is explicitly imported
 
 
-class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
-    def __init__(self, base_model, threshold=0.5):
-        self.base_model = base_model
-        self.threshold = threshold
-        self.classes_ = np.array([0, 1])
-    def fit(self, X, y):
-        self.base_model.fit(X, y)
-        return self
-    def predict_proba(self, X):
-        return self.base_model.predict_proba(X)
-    def predict(self, X):
-        probas = self.predict_proba(X)[:, 1]
-        return (probas >= self.threshold).astype(int)
-
+# Force tabpfn_client to initialize using the Streamlit secret token directly in memory, bypassing the local folder write loop completely.
+if "TABPFN_TOKEN" in st.secrets:
+    try:
+        # Enforce environment variable routing
+        os.environ["TABPFN_TOKEN"] = st.secrets["TABPFN_TOKEN"]
+        
+        # Explicit initialization using the client's built-in init method
+        tabpfn_client.init(token=st.secrets["TABPFN_TOKEN"])
+    except Exception as auth_err:
+        st.error(f"Authentication setup warning: {auth_err}")
+else:
+    st.error("❌ TABPFN_TOKEN not found in Streamlit Secrets Manager.")
 
 st.set_page_config(page_title="EHR AKI Risk Evaluator", layout="wide")
 st.title("🫘Predict AKI Web Application")
