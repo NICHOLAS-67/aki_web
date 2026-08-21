@@ -1,9 +1,11 @@
 import streamlit as st
+from sklearn.base import BaseEstimator, ClassifierMixin
 import numpy as np
 import pandas as pd
 import joblib
 import os
 import tabpfn_client  # Ensure this package is explicitly imported
+
 
 # Bypass terminal configurations entirely by explicitly injecting the token
 if "TABPFN_TOKEN" in st.secrets:
@@ -19,6 +21,7 @@ if "TABPFN_TOKEN" in st.secrets:
 else:
     st.error("❌ TABPFN_TOKEN missing from Streamlit App Secrets Manager Configuration Window.")
 
+
 class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
     def __init__(self, base_model, threshold=0.5):
         self.base_model = base_model
@@ -32,6 +35,7 @@ class ThresholdOptimizedTabPFN(BaseEstimator, ClassifierMixin):
     def predict(self, X):
         probas = self.predict_proba(X)[:, 1]
         return (probas >= self.threshold).astype(int)
+
 
 st.set_page_config(page_title="EHR AKI Risk Evaluator", layout="wide")
 st.title("🫘Predict AKI Web Application")
@@ -53,7 +57,7 @@ except Exception as e:
 # VIEW PATH A: BULK DATA UPLOAD & BATCH PROCESSING (Main Page Area)
 # ---------------------------------------------------------------------
 st.header("📋 Option A: Batch Patient Screening")
-uploaded_file = st.file_uploader("Upload a patient dataset CSV file matching your 33-column EHR schema:", type=["csv"])
+uploaded_file = st.file_uploader("Upload a patient dataset CSV file matching the 33-column EHR schema:", type=["csv"])
 
 if uploaded_file is not None:
     try:
