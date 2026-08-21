@@ -5,15 +5,14 @@ import joblib
 import os
 import tabpfn_client  # Ensure this package is explicitly imported
 
-
-# Force tabpfn_client to initialize using the Streamlit secret token directly in memory, bypassing the local folder write loop completely.
+# Read directly from Streamlit Secrets and pass it as an environment variable
 if "TABPFN_TOKEN" in st.secrets:
     try:
         # Enforce environment variable routing
         os.environ["TABPFN_TOKEN"] = st.secrets["TABPFN_TOKEN"]
         
-        # Explicit initialization using the client's built-in init method
-        tabpfn_client.init(token=st.secrets["TABPFN_TOKEN"])
+        # Call init without passing any parameters; it will read os.environ["TABPFN_TOKEN"]
+        tabpfn_client.init()
     except Exception as auth_err:
         st.error(f"Authentication setup warning: {auth_err}")
 else:
