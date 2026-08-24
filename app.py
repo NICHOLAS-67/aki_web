@@ -5,6 +5,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 import joblib
 import os
 from pathlib import Path
+from tabpfn.model_loading import load_fitted_tabpfn_model
 
 # TabPFN client enforces a cache directory hook. We programmatically force 
 # it to use Streamlit's temporary, write-allowed directory wrapper ('/tmp')
@@ -47,12 +48,24 @@ st.write("This tool is designed for general diagnostics. It is up to the clinici
 
 
 @st.cache_resource
-def load_model():
+def load_aki_model():
 
-    model = joblib.load("optimized_tabpfn_model.pkl")
-    return model
-    
-model = load_model()
+    model = load_fitted_tabpfn_model(
+        "optimized_tabpfn_model.tabpfn_fit",
+        device="cpu"
+    )
+
+    config = joblib.load(
+        "aki_threshold_config.pkl"
+    )
+
+    return model, config
+
+model, config = load_aki_model()
+
+threshold = config["threshold"]
+
+required_features = config["features"]
 
 # ---------------------------------------------------------------------
 # VIEW PATH A: BULK DATA UPLOAD & BATCH PROCESSING (Main Page Area)
@@ -176,18 +189,15 @@ if submit_single:
     }])
     
     # Calculate probabilities via loaded pkl artifact
-    single_prob = model.predict_proba(single_patient_data)[0, 1]
-    single_prediction = model.predict(single_patient_data)[0]
+    probability = model.predict_proba(single_patient_data)[0, 1]
+    prediction = int(probability >= threshold)
     
     st.markdown("---")
-    st.subheader("🔬 Single Patient Risk Evaluation Metrics")
-    
-    c1, c2 = st.columns(2)
-    c1.metric(label="Calculated Post-Contrast AKI Risk Probability", value=f"{single_prob:.2%}")
-    
-    if single_alert == 1:
-        c2.error("🚨 CRITICAL WARNING: PATIENT CLASSIFIED AS HIGH RISK")
-        st.warning("**Recommended Clinical Precautions:** Ensure robust peri-procedural hydration, minimize contrast volume delivery where feasible, and schedule automated serum creatinine labs 48 hours post-exposure.")
+    st.subheader("AKI Prediction")
+
+    st.write(f"Predicted AKI probability: {probability * 100:.2f}%")
+
+    if prediction == 1:
+        st.error("Higher-risk AKI prediction")
     else:
-        c2.success("✅ Patient Classified as Low/Normal Risk")
-        st.info("**Recommended Clinical Precautions:** Standard post-procedural monitoring and follow-up labs as per institutional protocol.")
+        st.success("Lower-risk AKI prediction")
