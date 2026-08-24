@@ -48,24 +48,14 @@ st.write("This tool is designed for general diagnostics. It is up to the clinici
 
 
 @st.cache_resource
-def load_aki_model():
+def load_model():
+    return joblib.load("optimized_tabpfn_model.pkl")
 
-    model = load_fitted_tabpfn_model(
-        "optimized_tabpfn_model.tabpfn_fit",
-        device="cpu"
-    )
-
-    config = joblib.load(
-        "aki_threshold_config.pkl"
-    )
-
-    return model, config
-
-model, config = load_aki_model()
-
-threshold = config["threshold"]
-
-required_features = config["features"]
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Failed to load model file. Error: {e}")
+    st.stop()
 
 # ---------------------------------------------------------------------
 # VIEW PATH A: BULK DATA UPLOAD & BATCH PROCESSING (Main Page Area)
