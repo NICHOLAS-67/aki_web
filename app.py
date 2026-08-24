@@ -48,13 +48,11 @@ st.write("This tool is designed for general diagnostics. It is up to the clinici
 
 @st.cache_resource
 def load_model():
-    return joblib.load("optimized_tabpfn_model.pkl")
 
-try:
-    model = load_model()
-except Exception as e:
-    st.error(f"Failed to load model file. Error: {e}")
-    st.stop()
+    model = joblib.load("optimized_tabpfn_model.pkl")
+    return model
+    
+model = load_model()
 
 # ---------------------------------------------------------------------
 # VIEW PATH A: BULK DATA UPLOAD & BATCH PROCESSING (Main Page Area)
@@ -179,7 +177,7 @@ if submit_single:
     
     # Calculate probabilities via loaded pkl artifact
     single_prob = model.predict_proba(single_patient_data)[0, 1]
-    single_alert = model.predict(single_patient_data)[0]
+    single_prediction = model.predict(single_patient_data)[0]
     
     st.markdown("---")
     st.subheader("🔬 Single Patient Risk Evaluation Metrics")
